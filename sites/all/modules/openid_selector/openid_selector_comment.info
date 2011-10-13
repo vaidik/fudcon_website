@@ -1,0 +1,15 @@
+; $Id: openid_selector_comment.info,v 1.1 2011/01/29 10:58:45 agerasika Exp $
+name = OpenID Selector for anonymous commenting
+description = OPTIONAL. Integrates OpenID Selector into comment form.
+package = OpenID Selector
+core = 6.x
+php = 5.1
+dependencies[] = openid_selector
+dependencies[] = openid_selector_ax
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "6.x-1.5"
+core = "6.x"
+project = "openid_selector"
+datestamp = "1297375579"
+

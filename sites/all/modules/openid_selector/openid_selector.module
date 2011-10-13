@@ -1,0 +1,67 @@
+<?php
+// $Id: openid_selector.module,v 1.8 2011/02/04 13:37:20 agerasika Exp $
+
+/**
+ * @file
+ * marries Javascript OpenID selector with Drupal's OpenID module.
+ * See http://www.gerixsoft.com/blog/drupal/openid-selector
+ *
+ * @author: Andriy Gerasika <www.gerixsoft.com/contact>
+ */
+
+/**
+ * Implementation of hook_form_alter().
+ *
+ * Adds OpenID selector to the OpenID forms.
+ */
+function openid_selector_form_alter(&$form, $form_state, $form_id) {
+  $forms = array(
+    'user_login_block' => 'user-login-form',
+    'user_login' => 'user-login',
+    'openid_user_add' => 'openid-user-add',
+    'openid_selector_comment' => 'openid-selector-comment',
+  );
+  if (array_key_exists($form_id, $forms)) {
+    $library_path = libraries_get_path('openid-selector');
+    $skin = variable_get('openid_selector_skin', '');
+    if ($skin != '' && file_exists($library_path . '/css/openid-' . $skin . '.css')) {
+      $skin = '-' . $skin;
+    }
+    drupal_add_css($library_path . '/css/openid' . $skin . '.css', 'module');
+    drupal_add_js($library_path . '/js/openid-jquery.js');
+    $lang = 'en'; // default language
+    global $language;
+    if (file_exists($library_path . '/js/openid-' . $language->language . '.js')) {
+      $lang = $language->language;
+    }
+    drupal_add_js($library_path . '/js/openid-' . $lang . '.js');
+    $module_path = drupal_get_path('module', 'openid_selector');
+    drupal_add_css($module_path . '/openid_selector.css', 'module');
+    drupal_add_js($module_path . '/openid_selector.js');
+    $settings = array(
+      'img_path' => $library_path . '/images/',
+      'form_id' => $forms[$form_id],
+    );
+    if ($form_id == 'user_login_block') {
+      $settings['block_width'] = variable_get('openid_selector_block_width', 5);
+    }
+    drupal_add_js(array('openid_selector' => $settings), 'setting');
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function openid_selector_menu() {
+  $items = array();
+  $items['admin/settings/openid_selector'] = array(
+    'title' => 'OpenID Selector',
+    'description' => 'Configure OpenID Selector',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('openid_selector_settings'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'openid_selector.admin.inc',
+  );
+  return $items;
+}

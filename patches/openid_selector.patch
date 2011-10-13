@@ -1,0 +1,12 @@
+diff -ur fudcon.in/sites/all/modules/openid_selector/openid_selector.install sources/openid_selector/openid_selector.install
+--- fudcon.in/sites/all/modules/openid_selector/openid_selector.install			     2011-10-06 05:29:01.000000000 -0700
++++ sources/openid_selector/openid_selector.install					     2011-02-10 13:59:04.000000000 -0800
+@@ -15,7 +15,7 @@
+     return NULL;
+   }
+   else {
+-    preg_match("/version\s*:\s*'([0-9a-z.-]+)'\s*,/i", file_get_contents($library_path . '/js/openid-jquery.js'), $version);
++    preg_match("/version\s*:\s*'([0-9a-z.-]+)'\s*,/i", file_get_contents($library_path . '/js/openid-jquery.js'), &$version);
+     $version = $version[1];
+     if (!$version) {
+       $version = t('1.0 or 1.1');

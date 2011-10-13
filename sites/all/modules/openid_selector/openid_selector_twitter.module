@@ -1,0 +1,26 @@
+<?php
+// $Id: openid_selector_twitter.module,v 1.1 2010/10/29 19:53:34 agerasika Exp $
+
+/**
+ * @file
+ * integrates twitter module into OpenID Selector module.
+ * See http://www.gerixsoft.com/blog/drupal/openid-selector-twitter
+ *
+ * @author: Andriy Gerasika <www.gerixsoft.com/contact>
+ */
+
+/**
+ * Implementation of hook_form_alter().
+ *
+ * Adds twitter to the OpenID (Selector) forms.
+ */
+function openid_selector_twitter_form_alter(&$form, $form_state, $form_id) {
+  $forms = array(
+    'user_login_block' => 'user-login-form',
+    'user_login' => 'user-login',
+  );
+  if (array_key_exists($form_id, $forms)) {
+    $module_path = drupal_get_path('module', 'openid_selector_twitter');
+    drupal_add_js($module_path . '/openid_selector_twitter.js');
+  }
+}

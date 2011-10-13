@@ -1,0 +1,131 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: OpenID Selector 1.3\n"
+"POT-Creation-Date: 2010-12-14 00:53+0200\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Andriy Gerasika <andriy.gerasika@gmail.com>\n"
+"Language-Team: Andriy Gerasika <andriy.gerasika@gmail.com>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Ukrainian\n"
+"X-Poedit-Country: UKRAINE\n"
+
+#: openid_selector.info:0;0
+#: openid_selector_drupal.info:0
+#: openid_selector_fb.info:0
+#: openid_selector_fbconnect.info:0
+#: openid_selector_inline.info:0
+#: openid_selector_linkedin.info:0
+#: openid_selector_mailru.info:0
+#: openid_selector_twitter.info:0
+#: openid_selector_vkontakte.info:0
+#: openid_selector_winliveid.info:0
+msgid "OpenID Selector"
+msgstr "OpenID Selector"
+
+#: openid_selector.info:0
+msgid "Integrates Javascript OpenID Selector into Drupal"
+msgstr "Інтегрує Javascript OpenID Selector в Друпал"
+
+#: openid_selector_drupal.info:0
+msgid "OpenID Selector for Drupal login"
+msgstr "OpenID Selector для Друпал логіна"
+
+#: openid_selector_drupal.info:0
+msgid "OPTIONAL. Integrates Drupal login form into OpenID Selector as new account provider using favicon. Excludes OpenID Selector Inline module."
+msgstr "ОПЦІОНАЛЬНО. Інтегрує логін форму від Друпала в OpenID Selector як нового акаунт-провайдера використовуючого favicon. Виключає модуль OpenID Selector dбудований."
+
+#: openid_selector_fb.info:0
+msgid "OpenID Selector for Facebook (Platform)"
+msgstr "OpenID Selector для Facebook (Platform)"
+
+#: openid_selector_fb.info:0
+msgid "OPTIONAL. Integrates <a href=\"http://drupal.org/project/fb\">fb</a> module into OpenID Selector"
+msgstr "ОПЦІОНАЛЬНО. Інтегрує <a href=\"http://drupal.org/project/fb\">fb</a> модуль в OpenID Selector"
+
+#: openid_selector_fbconnect.info:0
+msgid "OpenID Selector for Facebook Connect"
+msgstr "OpenID Selector для Facebook Connect"
+
+#: openid_selector_fbconnect.info:0
+msgid "OPTIONAL. Integrates <a href=\"http://drupal.org/project/fbconnect\">fbconnect</a> module into OpenID Selector"
+msgstr "ОПЦІОНАЛЬНО. Інтегрує <a href=\"http://drupal.org/project/fbconnect\">fbconnect</a> модуль в OpenID Selector"
+
+#: openid_selector_inline.info:0
+msgid "OpenID Selector Inline"
+msgstr "OpenID Selector вбудований"
+
+#: openid_selector_inline.info:0
+msgid "OPTIONAL. Inlines OpenID Selector below Drupal login form, hence removing \"Login using OpenID\" link. Excludes OpenID Selector for Drupal login module."
+msgstr "ОПЦІОНАЛЬНО. Вбудовує OpenID Selector знизу логін форми Друпала, отже, видаляючи посилання \"Увійти з OpenID\". Виключає модуль OpenID Selector для Друпал логіна."
+
+#: openid_selector_linkedin.info:0
+msgid "OpenID Selector for LinkedIn Authentication"
+msgstr "OpenID Selector для LinkedIn Authentication"
+
+#: openid_selector_linkedin.info:0
+msgid "OPTIONAL. Integrates <a href=\"http://drupal.org/project/linkedin\">linkedin</a> module into OpenID Selector"
+msgstr "ОПЦІОНАЛЬНО. Інтегрує <a href=\"http://drupal.org/project/linkedin\">linkedin</a> модуль в OpenID Selector"
+
+#: openid_selector_mailru.info:0
+msgid "OpenID Selector for mail.ru"
+msgstr "OpenID Selector для mail.ru"
+
+#: openid_selector_mailru.info:0
+msgid "OPTIONAL. Integrates <a href=\"http://drupal.org/project/mail_ru\">mail_ru</a> module into OpenID Selector"
+msgstr "ОПЦІОНАЛЬНО. Інтегрує <a href=\"http://drupal.org/project/mail_ru\">mail_ru</a> модуль в OpenID Selector"
+
+#: openid_selector_twitter.info:0
+msgid "OpenID Selector for Twitter Signin"
+msgstr "OpenID Selector для Twitter Signin"
+
+#: openid_selector_twitter.info:0
+msgid "OPTIONAL. Integrates <a href=\"http://drupal.org/project/twitter\">twitter</a> module into OpenID Selector"
+msgstr "ОПЦІОНАЛЬНО. Інтегрує <a href=\"http://drupal.org/project/twitter\">twitter</a> модуль в OpenID Selector"
+
+#: openid_selector_vkontakte.info:0
+msgid "OpenID Selector for vkontakte.ru"
+msgstr "OpenID Selector для vkontakte.ru"
+
+#: openid_selector_vkontakte.info:0
+msgid "OPTIONAL. Integrates <a href=\"http://drupal.org/project/vk_openapi\">vk_openapi</a> module into OpenID Selector"
+msgstr "Опціонально. Інтегрує <a href=\"http://drupal.org/project/vk_openapi\">vk_openapi</a> модуль в OpenID Selector"
+
+#: openid_selector_winliveid.info:0
+msgid "OpenID Selector for Windows Live ID"
+msgstr "OpenID Selector для Windows Live ID"
+
+#: openid_selector_winliveid.info:0
+msgid "OPTIONAL. Integrates <a href=\"http://drupal.org/project/winliveid\">winliveid</a> module into OpenID Selector"
+msgstr "Опціонально. Інтегрує <a href=\"http://drupal.org/project/winliveid\">winliveid</a> модуль в OpenID Selector"
+
+#: openid_selector.js:0;0
+msgid "What is OpenID?"
+msgstr "Що таке OpenID?"
+
+#: openid_selector.js:0
+msgid "Click your account provider:"
+msgstr "Виберіть вашого акаунт-провайдера:"
+
+#: openid_selector.js:0
+msgid "Log in with !provider:"
+msgstr "Увійти з !provider:"
+
+#: openid_selector.js:0
+msgid "Website configuration error:"
+msgstr "Помилка у конфігурації веб-сайту:"
+
+#: openid_selector.js:0
+msgid "Drupal OpenID Selector requires Javascript OpenID Selector !version"
+msgstr "OpenID Selector для Друпалу вимагає Javascript OpenID Selector !version"
+
+#: openid_selector.js:0
+msgid "Please contact website administrator."
+msgstr "Будь-ласка, зв'яжіться із адміністратором веб-сайту."
+
+#: openid_selector_drupal.js:0
+msgid "Log in with account provider:"
+msgstr "Увійти з акаунт-провайдером:"
+

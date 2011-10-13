@@ -1,0 +1,9 @@
+/* $Id: openid_selector_comment.css,v 1.1 2011/01/29 10:58:45 agerasika Exp $ */
+
+html {
+  overflow-y: auto !important;  
+}
+
+body {
+  padding-left: 1em !important;
+}

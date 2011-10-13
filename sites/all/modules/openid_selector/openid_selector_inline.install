@@ -1,0 +1,25 @@
+<?php
+// $Id: openid_selector_inline.install,v 1.2 2011/02/04 16:20:45 agerasika Exp $
+
+/**
+ * @file
+ * Install hooks for openid_selector_install.module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function openid_selector_inline_install() {
+  // Set the weight higher than openid_selector.module / libraries,
+  // so the corresponding JS gets added after the others.
+  db_query("UPDATE {system} SET weight = 1 WHERE name = 'openid_selector_inline'");
+}
+
+/**
+ * Implementation of hook_update_N().
+ */
+function openid_selector_inline_update_6100() {
+  $ret = array();
+  $ret[] = update_sql("UPDATE {system} SET weight = 1 WHERE name = 'openid_selector_inline'");
+  return $ret;
+}

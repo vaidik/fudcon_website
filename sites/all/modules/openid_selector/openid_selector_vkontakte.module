@@ -1,0 +1,26 @@
+<?php
+// $Id: openid_selector_vkontakte.module,v 1.2 2011/01/19 01:48:32 agerasika Exp $
+
+/**
+ * @file
+ * integrates vk_openapi module into OpenID Selector module.
+ * See http://www.gerixsoft.com/blog/drupal/openid-selector-twitter
+ *
+ * @author: Andriy Gerasika <www.gerixsoft.com/contact>
+ */
+
+/**
+ * Implementation of hook_form_alter().
+ *
+ * Adds vkontakte.ru to the OpenID (Selector) forms.
+ */
+function openid_selector_vkontakte_form_alter(&$form, $form_state, $form_id) {
+  $forms = array(
+    'user_login_block' => 'user-login-form',
+    'user_login' => 'user-login',
+  );
+  if (array_key_exists($form_id, $forms)) {
+    $module_path = drupal_get_path('module', 'openid_selector_vkontakte');
+    drupal_add_js($module_path . '/openid_selector_vkontakte.js');
+  }
+}

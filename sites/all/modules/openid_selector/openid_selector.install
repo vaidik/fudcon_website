@@ -1,0 +1,98 @@
+<?php
+// $Id: openid_selector.install,v 1.7 2011/02/10 21:59:04 agerasika Exp $
+
+/**
+ * @file
+ * Install hooks for openid_selector.module.
+ */
+
+define('JAVASCRIPT_OPENID_SELECTOR_VERSION', '1.3');
+define('JAVASCRIPT_OPENID_SELECTOR_DOWNLOAD', 'http://openid-selector.googlecode.com/files/openid-selector-1.3.zip');
+
+function openid_selector_get_javascript_version() {
+  $library_path = libraries_get_path('openid-selector');  
+  if (!file_exists($library_path . '/js/openid-jquery.js')) {
+    return NULL;
+  }
+  else {
+    preg_match("/version\s*:\s*'([0-9a-z.-]+)'\s*,/i", file_get_contents($library_path . '/js/openid-jquery.js'), $version);
+    $version = $version[1];
+    if (!$version) {
+      $version = t('1.0 or 1.1');
+    }
+    return $version;
+  }
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function openid_selector_uninstall() {
+  variable_del('openid_selector_skin');
+  variable_del('openid_selector_block_width');
+}
+
+/**
+ * Implementation of hook_update_N().
+ */
+function openid_selector_update_6100() {
+  openid_selector_enable();
+  $ret = array();
+  return $ret;
+}
+
+function openid_selector_update_6101() {
+  $skin = variable_get('openid_selector_style', '');
+  variable_set('openid_selector_skin', $skin);
+  variable_del('openid_selector_style');
+  $ret = array();
+  return $ret;
+}
+
+/**
+ * Implementation of hook_enable().
+ */
+function openid_selector_enable() {
+  $version = openid_selector_get_javascript_version();  
+  if ($version == NULL) {
+    drupal_set_message(t('Javascript OpenID Selector <a href="@download">!version</a> is not found. Please install it and fix all errors and warnings on the <a href="@report">status report page</a>.', array('@report' => url('admin/reports/status'), '!version' => JAVASCRIPT_OPENID_SELECTOR_VERSION, '@download' => url(JAVASCRIPT_OPENID_SELECTOR_DOWNLOAD))), 'error');
+  }
+  else {
+    if ($version != JAVASCRIPT_OPENID_SELECTOR_VERSION) {
+      drupal_set_message(t('Javascript OpenID Selector <a href="@download">!version</a> is required. Please install it and fix all errors and warnings on the <a href="@report">status report page</a>.', array('@report' => url('admin/reports/status'), '!version' => JAVASCRIPT_OPENID_SELECTOR_VERSION, '@download' => url(JAVASCRIPT_OPENID_SELECTOR_DOWNLOAD))), 'error');
+    }
+  }
+}
+
+/**
+ * Implementation of hook_requirements().
+ */
+function openid_selector_requirements($phase) {
+  $requirements = array();
+  $version = openid_selector_get_javascript_version();  
+  if ($version == NULL) {
+    $requirements['openid_selector'] = array(
+      'title' => t('Javascript OpenID Selector'),
+      'description' => t('Javascript OpenID Selector <a href="@download">!version</a> is not found', array('!version' => JAVASCRIPT_OPENID_SELECTOR_VERSION, '@download' => url(JAVASCRIPT_OPENID_SELECTOR_DOWNLOAD))),
+      'severity' => REQUIREMENT_ERROR,
+    );
+  }
+  else {
+    if ($version != JAVASCRIPT_OPENID_SELECTOR_VERSION) {
+      $requirements['openid_selector'] = array(
+        'title' => t('Javascript OpenID Selector'),
+        'description' => t('Javascript OpenID Selector <a href="@download">!version</a> is required', array('!version' => JAVASCRIPT_OPENID_SELECTOR_VERSION, '@download' => url(JAVASCRIPT_OPENID_SELECTOR_DOWNLOAD))),
+        'severity' => REQUIREMENT_ERROR,
+        'value' => $version,
+      );
+    }
+    else {
+      $requirements['openid_selector'] = array(
+        'title' => t('Javascript OpenID Selector'),
+        'severity' => REQUIREMENT_OK,
+        'value' => $version,
+      );
+    }
+  }
+  return $requirements;
+}

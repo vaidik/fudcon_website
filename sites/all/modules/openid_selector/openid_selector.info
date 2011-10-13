@@ -1,0 +1,15 @@
+; $Id: openid_selector.info,v 1.2 2010/12/06 01:57:16 agerasika Exp $
+name = OpenID Selector
+package = OpenID Selector
+description = Integrates Javascript OpenID Selector into Drupal
+core = 6.x
+php = 5.1
+dependencies[] = openid
+dependencies[] = libraries
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "6.x-1.5"
+core = "6.x"
+project = "openid_selector"
+datestamp = "1297375579"
+

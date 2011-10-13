@@ -1,0 +1,29 @@
+<?php
+// $Id: openid_selector_fb.module,v 1.1 2010/12/06 01:57:16 agerasika Exp $
+
+/**
+ * @file
+ * integrates fb module into OpenID Selector module.
+ * See http://www.gerixsoft.com/blog/drupal/openid-selector-twitter
+ *
+ * @author: Andriy Gerasika <www.gerixsoft.com/contact>
+ */
+
+/**
+ * Implementation of hook_form_alter().
+ *
+ * Adds fb to the OpenID (Selector) forms.
+ */
+function openid_selector_fb_form_alter(&$form, $form_state, $form_id) {
+  if (module_exists('openid_selector_fbconnect')) {
+    return; // this module conflicts w/ OpenID Selector for Facebook Connect module.
+  }
+  $forms = array(
+    'user_login_block' => 'user-login-form',
+    'user_login' => 'user-login',
+  );
+  if (array_key_exists($form_id, $forms)) {
+    $module_path = drupal_get_path('module', 'openid_selector_fb');
+    drupal_add_js($module_path . '/openid_selector_fb.js');
+  }
+}

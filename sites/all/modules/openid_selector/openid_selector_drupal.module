@@ -1,0 +1,50 @@
+<?php
+// $Id: openid_selector_drupal.module,v 1.5 2011/02/04 13:37:20 agerasika Exp $
+
+/**
+ * @file
+ * integrates this website's login into OpenID Selector module.
+ * See http://www.gerixsoft.com/blog/drupal/openid-selector-drupal
+ *
+ * @author: Andriy Gerasika <www.gerixsoft.com/contact>
+ */
+
+/**
+ * Implementation of hook_form_alter().
+ *
+ * Adds drupal login to the OpenID (Selector) forms.
+ */
+function openid_selector_drupal_form_alter(&$form, $form_state, $form_id) {
+  $forms = array(
+    'user_login_block' => 'user-login-form',
+    'user_login' => 'user-login',
+  );
+  if (array_key_exists($form_id, $forms)) {
+    $module_path = drupal_get_path('module', 'openid_selector_drupal');
+    drupal_add_css($module_path . '/openid_selector_drupal.css', 'module');
+    drupal_add_js($module_path . '/openid_selector_drupal.js');
+    $site_name = variable_get('openid_selector_site_name', variable_get('site_name', 'Drupal'));
+    $settings = array(
+      'favicon' => theme_get_setting('toggle_favicon') ? theme_get_setting('favicon') : base_path() . 'misc/favicon.ico',
+      'site_name' => $site_name == '' ? variable_get('site_name', 'Drupal') : $site_name,
+    );
+    drupal_add_js(array('openid_selector_drupal' => $settings), 'setting');
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function openid_selector_drupal_menu() {
+  $items = array();
+  $items['admin/settings/openid_selector_drupal'] = array(
+    'title' => 'OpenID Selector for Drupal',
+    'description' => 'Configure OpenID Selector for Drupal',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('openid_selector_drupal_settings'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'openid_selector_drupal.admin.inc',
+  );
+  return $items;
+}

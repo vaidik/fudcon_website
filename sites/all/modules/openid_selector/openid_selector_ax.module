@@ -1,0 +1,238 @@
+<?php
+// $Id: openid_selector_ax.module,v 1.3 2011/02/04 16:20:45 agerasika Exp $
+
+/**
+ * @file
+ * EXPERIMENTAL. Enables Attribute Exchange for core OpenID module. REQUIRES PATCHING.
+ *
+ * @author: Andriy Gerasika <www.gerixsoft.com/contact>
+ */
+
+/**
+ * Implementation of hook_openid()
+ */
+function openid_selector_ax_openid($op, $request = array()) {
+  if ($op == 'request') {
+    drupal_alter('openid_request', $request);
+  }
+  return $request;
+}
+
+/**
+ * Implementation of hook_openid_request_alter().
+ */
+function openid_selector_ax_openid_request_alter(&$request) {  
+  $request['openid.ns.ax'] = 'http://openid.net/srv/ax/1.0';
+  $request['openid.ax.mode'] = 'fetch_request';
+  $ax = array(
+    'required' => array(
+      'mail' => 'contact/email',
+      'nick' => 'namePerson/friendly',
+      'name' => 'namePerson',
+      'prefix' => 'namePerson/prefix',
+      'first' => 'namePerson/first',
+      'middle' => 'namePerson/middle',
+      'last' => 'namePerson/last',
+      'suffix' => 'namePerson/suffix',
+    ),
+    'if_available' => array(
+    ),
+  );
+  openid_selector_ax_openid_request_alter_0($request, $ax);
+}
+
+function openid_selector_ax_openid_request_alter_0(&$request, $ax) {
+  foreach ($ax as $type => $values) if ($values) {
+    if (array_key_exists('openid.ax.' . $type, $request)) {
+      $request['openid.ax.' . $type] = array($request['openid.ax.' . $type]);
+    }
+    else {
+      $request['openid.ax.' . $type] = array();
+    }
+    foreach ($values as $key => $value) {
+      $request['openid.ax.' . $type][] = $key . '_ao';
+      $request['openid.ax.' . $type][] = $key . '_son';
+      $request['openid.ax.' . $type][] = $key . '_ons';
+      $request['openid.ax.type.' . $key . '_ao'] = 'http://axschema.org/' . $value;
+      $request['openid.ax.type.' . $key . '_son'] = 'http://schema.openid.net/' . $value;
+      $request['openid.ax.type.' . $key . '_ons'] = 'http://openid.net/schema/' . $value;
+    }
+    $request['openid.ax.' . $type] = implode(',', $request['openid.ax.' . $type]);
+  }
+}
+
+/**
+ * Implementation of hook_menu_alter().
+ */
+function openid_selector_ax_menu_alter(&$items) {
+  $items['openid/authenticate']['page callback'] = 'openid_selector_ax_authentication_page';
+}
+
+// copy-paste clone from openid.pages.inc
+function openid_selector_ax_authentication_page() {
+  $result = openid_complete();
+  switch ($result['status']) {
+    case 'success':
+      module_load_include('inc', 'openid'); ///
+      drupal_alter('openid_response', $result); ///
+      return openid_authentication($result);
+    case 'failed':
+      drupal_set_message(t('OpenID login failed.'), 'error');
+      break;
+    case 'cancel':
+      drupal_set_message(t('OpenID login cancelled.'));
+      break;
+  }
+  drupal_goto();
+}
+
+/**
+ * Implementation of hook_openid_response_alter().
+ */
+function openid_selector_ax_openid_response_alter(&$response) {  
+  $sreg_values = openid_extract_namespace($response, 'http://openid.net/extensions/sreg/1.1', 'sreg');
+  $ax_values = openid_extract_namespace($response, 'http://openid.net/srv/ax/1.0', 'ax');
+  
+  // rewrite ax email to sreg email
+  if (!empty($sreg_values['email'])) {
+    $response['openid.sreg.email'] = $sreg_values['email'];
+  }
+  elseif ($ax_mail_value = openid_extract_ax_value($ax_values, 'contact/email')) {
+    $response['openid.sreg.email'] = $ax_mail_value;
+  }
+
+  // rewrite ax nickname to sreg nickname
+  if (!empty($sreg_values['nickname'])) {
+    $response['openid.sreg.nickname'] = $sreg_values['nickname'];
+  }
+  elseif ($ax_nick_value = openid_extract_ax_value($ax_values, 'namePerson/friendly')) {
+    $response['openid.sreg.nickname'] = $ax_nick_value;
+  }
+  elseif ($ax_name_value = openid_extract_ax_value($ax_values, 'namePerson')) {
+    $response['openid.sreg.nickname'] = $ax_name_value;
+  }
+  else {
+    $ax_name_values = array();
+    foreach (array(
+      'namePerson/prefix', 
+      'namePerson/first', 
+      'namePerson/middle',
+      'namePerson/last',
+      'namePerson/suffix',
+      ) as $ax_name_uri) {
+      $ax_name_value = openid_extract_ax_value($ax_values, $ax_name_uri);
+      if ($ax_name_value) {
+        $ax_name_values[] = $ax_name_value;
+      }
+    }
+    $response['openid.sreg.nickname'] = implode(' ', $ax_name_values);
+  }
+  
+  // nickname is missing, derive it from email
+  if (empty($response['openid.sreg.nickname']) && !empty($response['openid.sreg.email'])) {
+    $email = explode('@', $response['openid.sreg.email']);
+    $response['openid.sreg.nickname'] = $email[0];
+  }
+}
+
+function openid_extract_ax_value($ax_values, $ax_uri) {
+  $ax_value = openid_extract_ax_values($ax_values, array('http://axschema.org/' . $ax_uri, 'http://schema.openid.net/' . $ax_uri, 'http://openid.net/schema/' . $ax_uri));
+  if (is_array($ax_value)) {
+    $ax_value = current($ax_value);
+  }
+  return $ax_value;
+}
+
+/**
+ * Extract all the parameters belonging to an extension in a response message.
+ *
+ * OpenID 2.0 defines a simple extension mechanism, based on a namespace prefix.
+ *
+ * Each request or response can define a prefix using:
+ * @code
+ *   openid.ns.[prefix] = [extension_namespace]
+ *   openid.[prefix].[key1] = [value1]
+ *   openid.[prefix].[key2] = [value2]
+ *   ...
+ * @endcode
+ *
+ * This function extracts all the keys belonging to an extension namespace in a
+ * response, optionally using a fallback prefix if none is provided in the response.
+ *
+ * Note that you cannot assume that a given extension namespace will use the same
+ * prefix on the response and the request: each party may use a different prefix
+ * to refer to the same namespace.
+ *
+ * @param $response
+ *   The response array.
+ * @param $extension_namespace
+ *   The namespace of the extension.
+ * @param $fallback_prefix
+ *   An optional prefix that will be used in case no prefix is found for the
+ *   target extension namespace.
+ * @return
+ *   An associative array containing all the parameters in the response message
+ *   that belong to the extension. The keys are stripped from their namespace
+ *   prefix.
+ * @see http://openid.net/specs/openid-authentication-2_0.html#extensions
+ */
+function openid_extract_namespace($response, $extension_namespace, $fallback_prefix = NULL) {
+  // Find the namespace prefix.
+  $prefix = $fallback_prefix;
+  foreach ($response as $key => $value) {
+    if ($value == $extension_namespace && preg_match('/^openid\.ns\.([^.]+)$/', $key, $matches)) {
+      $prefix = $matches[1];
+      break;
+    }
+  }
+
+  // Now extract the namespace keys from the response.
+  $output = array();
+  if (!isset($prefix)) {
+    return $output;
+  }
+  foreach ($response as $key => $value) {
+    if (preg_match('/^openid\.' . $prefix . '\.(.+)$/', $key, $matches)) {
+      $local_key = $matches[1];
+      $output[$local_key] = $value;
+    }
+  }
+
+  return $output;
+}
+
+/**
+ * Extracts values from an OpenID AX Response.
+ *
+ * The values can be returned in two forms:
+ *   - only openid.ax.value.<alias> (for single-valued answers)
+ *   - both openid.ax.count.<alias> and openid.ax.value.<alias>.<count> (for both
+ *     single and multiple-valued answers)
+ *
+ * @param $values
+ *   An array as returned by openid_extract_namespace(..., OPENID_NS_AX).
+ * @param $uris
+ *   An array of identifier URIs.
+ * @return
+ *   An array of values.
+ * @see http://openid.net/specs/openid-attribute-exchange-1_0.html#fetch_response
+ */
+function openid_extract_ax_values($values, $uris) {
+  $output = array();
+  if (is_array($values)) ///
+  foreach ($values as $key => $value) {
+    if (in_array($value, $uris) && preg_match('/^type\.([^.]+)$/', $key, $matches)) {
+      $alias = $matches[1];
+      if (isset($values['count.' . $alias])) {
+        for ($i = 1; $i <= $values['count.' . $alias]; $i++) {
+          $output[] = $values['value.' . $alias . '.' . $i];
+        }
+      }
+      elseif (isset($values['value.' . $alias])) {
+        $output[] = $values['value.' . $alias];
+      }
+      break;
+    }
+  }
+  return $output;
+}

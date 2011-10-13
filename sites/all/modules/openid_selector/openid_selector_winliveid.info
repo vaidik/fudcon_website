@@ -1,0 +1,15 @@
+; $Id: openid_selector_winliveid.info,v 1.1 2010/12/06 01:57:16 agerasika Exp $
+name = OpenID Selector for Windows Live ID
+description = OPTIONAL. Integrates <a href="http://drupal.org/project/winliveid">winliveid</a> module into OpenID Selector
+package = OpenID Selector
+core = 6.x
+php = 5.1
+dependencies[] = openid_selector
+dependencies[] = winliveid
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "6.x-1.5"
+core = "6.x"
+project = "openid_selector"
+datestamp = "1297375579"
+

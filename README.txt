@@ -66,3 +66,11 @@ Some handy tips:
    [root@localhost]# mysqldump fudconweb_devel > fudconweb_devel.sql
 
 
+External modules used:
+  libraries-6.x-1.0.tar.gz
+  openid-selector-1.3.zip
+  openid_selector-6.x-1.5.tar.gz
+  zen-6.x-2.1.tar.gz
+
+Patches already applied:
+  patches/openid_selector.patch
