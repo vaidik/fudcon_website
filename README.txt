@@ -73,6 +73,7 @@ External modules used:
   openid-selector-1.3.zip
   openid_selector-6.x-1.5.tar.gz
   zen-6.x-2.1.tar.gz
+  views_bulk_operations-6.x-1.11.tar.gz
 
 Patches already applied:
   patches/openid_selector.patch
