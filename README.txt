@@ -22,6 +22,8 @@ How to setup?
    cp * /var/www/myfedora.org
    rm -r /var/www/myfedora.org/database_dump
 
+ * Get the FUDCon theme as described in sites/all/themes/README.txt
+
  * Create a virtual host entry in Apache configuration file
    /etc/httpd/conf/httpd.conf :
 
