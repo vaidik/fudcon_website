@@ -3,8 +3,30 @@ This is the Drupal COD installation files for FUDCon Pune website.
 The latest plan and status for the website can be found here:
 https://fedoraproject.org/wiki/FUDCon:India_2011_website_devel
 
+==============================================
+Quick setup
+==============================================
+NOTE: For database setup see detailed steps below
 
-How to setup?
+
+First checkout the code:
+$ git clone git://github.com/vaidikkp/fudcon_website.git fudcon.in
+$ cd fudcon.in
+$ mkdir sites/default/files/
+$ chmod 775 sites/default/files/
+
+Add appropriate settings for your site, esp. for database:
+$ cp sites/default/default.settings.php sites/default/settings.php
+
+Configure the theme as well ( this will apply for all the sites )
+$ cd sites/all/themes/
+$ git clone git://github.com/vaidikkp/fudcon_website_theme.git fudcon
+$ cd ../../../
+
+
+==============================================
+Detailed setup
+==============================================
 
  * Create a database using MySQL database dump
    file database_dump/fudconweb_devel3.sql.gz :
@@ -74,6 +96,10 @@ External modules used:
   openid_selector-6.x-1.5.tar.gz
   zen-6.x-2.1.tar.gz
   views_bulk_operations-6.x-1.11.tar.gz
+  mass_contact
+  profile_csv-6.x-1.1.tar.gz
 
 Patches already applied:
   patches/openid_selector.patch
+
+
