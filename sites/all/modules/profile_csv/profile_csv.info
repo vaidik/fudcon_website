@@ -1,0 +1,12 @@
+name = Profile CSV
+description    = Allows exporting profile data in Comma Separated Values (CSV) format.
+dependencies[] = profile
+core           = 6.x
+
+
+; Information added by drupal.org packaging script on 2010-09-13
+version = "6.x-1.1"
+core = "6.x"
+project = "profile_csv"
+datestamp = "1284408708"
+

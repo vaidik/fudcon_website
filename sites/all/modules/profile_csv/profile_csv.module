@@ -1,0 +1,330 @@
+<?php
+// $Id: profile_csv.module,v 1.10.2.7 2010/09/13 20:04:32 kbahey Exp $
+
+/**
+ * @file
+ * Profile CSV
+ *
+ * This is a profile module export user and profile data to a Comma Separated Values file (CSV).
+ */
+
+define('PROFILE_CSV_STATUS',         'profile_csv_status');
+define('PROFILE_CSV_PARAM',          'profile_csv_param_');
+define('PROFILE_CSV_ROLE',           'profile_csv_role');
+define('PROFILE_CSV_PERM_DOWNLOAD',  'download profiles');
+
+function profile_csv_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case "admin/modules#description":
+      $output = t("Allows exporting profile data in Comma Separated Values format.");
+      break;
+  }
+  return $output;
+}
+
+function profile_csv_perm() {
+  return array(PROFILE_CSV_PERM_DOWNLOAD);
+}
+
+function profile_csv_menu() {
+  $items = array();
+
+  $items['admin/settings/profile_csv'] = array(
+    'title'            => 'Profile CSV',
+    'type'             => MENU_NORMAL_ITEM,
+    'description'      => 'Profile CSV user data selection',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('profile_csv_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+  );
+  $items['profile_csv'] = array(
+    'title'            => 'Profile CSV Export',
+    'type'             => MENU_SUGGESTED_ITEM, // Optional
+    'page callback'    => 'profile_csv_page',
+    'access arguments' => array(PROFILE_CSV_PERM_DOWNLOAD),
+  );
+
+  return $items;
+}
+
+function profile_csv_admin_settings() {
+
+  $form['extra'] = array(
+    '#type'        => 'markup',
+    '#value'       => t('Remember to enable the profile_csv menu item so users who have the permission to download profile data have this item on their menus'),
+  );
+  $set = 'roles';
+  $form[$set] = array(
+    '#type'        => 'fieldset',
+    '#title'       => t('Roles'),
+    '#description' =>  t('Select one or more roles.'),
+    '#collapsible' => TRUE,
+    '#collapsed'   => TRUE,
+  );
+  $roles = array(
+    DRUPAL_ANONYMOUS_RID,
+    DRUPAL_AUTHENTICATED_RID,
+  );
+  foreach (user_roles($membersonly = TRUE) as $rid => $name) {
+    $role = PROFILE_CSV_ROLE . $rid;
+    $form[$set][$role] = array(
+      '#type'          => 'checkbox',
+      '#title'         => in_array($rid, $roles) ? $name : t($name),
+      '#return_value'  => 1,
+      '#default_value' => variable_get($role, 0),
+    );
+  }
+  $set = 'status';
+  $form[$set] = array(
+    '#type'        => 'fieldset',
+    '#title'       => t('User status'),
+    '#description' =>  t('Select one status.'),
+    '#collapsible' => TRUE,
+    '#collapsed'   => TRUE,
+  );
+  $options = array(
+  1 => t('Active'),
+  0 => t('Blocked'),
+  2 => t('Both'),
+  );
+  $form[$set][PROFILE_CSV_STATUS] = array(
+    '#type'          => 'select',
+    '#default_value' => variable_get(PROFILE_CSV_STATUS, 2),
+    '#options'       => $options,
+    '#description'   => t(''),
+  );
+
+  $set = 'fields';
+  $form[$set] = array(
+    '#type'          => 'fieldset',
+    '#title'         => t('General'),
+    '#description'   =>  t('Select one or more profile fields.'),
+    '#collapsible'   => TRUE,
+    '#collapsed'     => TRUE,
+  );
+  $schema = drupal_get_schema('users');
+  $options = array();
+  foreach ($schema['fields'] as $field_name => $field) {
+    $options[$field_name] = _profile_csv_users_map_column_name($field_name) .'<div class="description clear-block">'. filter_xss_admin(t($field['description'])) .'</div>';
+  }
+  $form[$set][PROFILE_CSV_PARAM .'fields'] = array(
+    '#type'          => 'checkboxes',
+    '#options'       => $options,
+    '#title'         => t('Fields'),
+    '#default_value' => variable_get(PROFILE_CSV_PARAM .'fields', array()),
+  );
+
+  $set = 'profile';
+  $form[$set] = array(
+    '#type'        => 'fieldset',
+    '#title'       => t('Categories'),
+    '#description' => t('Select one or more profile fields from categories below.'),
+    '#collapsible' => TRUE,
+    '#collapsed'   => TRUE,
+  );
+
+  $result = db_query("SELECT pf.fid, pf.name, pf.title, pf.category
+    FROM {profile_fields} pf
+    ORDER BY pf.category, pf.weight, pf.title");
+  while ($row = db_fetch_object($result)) {
+    $fld = PROFILE_CSV_PARAM .'profile_'. $row->fid;
+    if (!isset($form[$set][$row->category])) {
+      $form[$set][$row->category] = array(
+        '#type'        => 'fieldset',
+        '#title'       => check_plain(t($row->category)),
+        '#collapsible' => TRUE,
+      );
+    }
+
+    $form[$set][$row->category][$fld] = array(
+      '#type'          => 'checkbox',
+      '#title'         => check_plain(t($row->title)),
+      '#return_value'  => 1,
+      '#default_value' => variable_get($fld, 0),
+    );
+  }
+  return system_settings_form($form);
+}
+
+function profile_csv_page() {
+  // This is needed because with sites with 10s of 1,000s of users
+  // the setting for PHP (e.g. 96MB or 128MB) is not enough. Instead
+  // of increasing it for all pages and modules, we just do it for 
+  // this one, keeping a safe threshold for others.
+  @ini_set('memory_limit', '750M');
+  @set_time_limit(240);
+
+  header('Content-type: text/csv; charset=UTF-8');
+  header('Content-Disposition: attachment; filename=userlist_' . time() . '.csv');
+  header('Pragma: no-cache');
+  header('Expires: 0');
+
+  print _profile_csv_header();
+
+  $user_status = variable_get(PROFILE_CSV_STATUS, 2);
+  if (variable_get(PROFILE_CSV_ROLE . '2', 0)) {
+    $result = db_query("SELECT u.uid, u.status FROM {users} u  WHERE u.uid > 1");
+    while ($row = db_fetch_object($result)) {
+      if ($user_status == 2) {
+        print _profile_csv_format_user($row->uid);
+      }
+      else {
+        if ($user_status == $row->status) {
+          print _profile_csv_format_user($row->uid);
+        }
+      }
+    }
+  }
+  else {
+    $result = db_query("SELECT u.uid, u.status, ur.rid
+      FROM {users} u
+      INNER JOIN {users_roles} ur ON u.uid = ur.uid
+      WHERE u.uid > 1");
+    $prev_uid = 0;
+    while ($row = db_fetch_object($result)) {
+      if ((variable_get(PROFILE_CSV_ROLE . $row->rid, 0)) && ($row->uid != $prev_uid)) {
+        if ($user_status == 2) {
+          print _profile_csv_format_user($row->uid);
+        }
+        else {
+          if ($user_status == $row->status) {
+            print _profile_csv_format_user($row->uid);
+          }
+        }
+        $prev_uid = $row->uid;
+      }
+    }
+  }
+  exit();
+}
+
+function _profile_csv_get_profile_fields() {
+  static $fields;
+
+  if (!isset($fields)) {
+    $fields = array();
+    $result = db_query('SELECT pf.fid, pf.name, pf.title, pf.type, pf.visibility
+      FROM {profile_fields} pf
+      ORDER BY pf.category, pf.weight, pf.title');
+    while ($row = db_fetch_object($result)) {
+      if (variable_get(PROFILE_CSV_PARAM .'profile_'. $row->fid, 0)) {
+        $fields[] = array('name' => $row->name, 'title' => $row->title, 'type' => $row->type, 'visibility' => $row->visibility);
+      }
+    }
+  }
+  return $fields;
+}
+
+function _profile_csv_format_user($uid = 0) {
+  $user_data = _profile_csv_get_user($uid);
+  $profile_data = _profile_csv_get_profile($uid, $user_data['data']);
+  unset($user_data['data']);
+  $info = array_merge($user_data, $profile_data);
+  //all of the valid fields in ['data'] should have been picked out in _profile_csv_get_profile, so unset it
+
+  foreach ($info as $value) {
+    $new_info[] = '"'. str_replace('"', '""', $value) .'"';
+  }
+  if (isset($new_info)) {
+    $line = implode(",", $new_info);
+  }
+  $data .= trim($line) ."\n";
+
+  return $data;
+}
+
+function _profile_csv_get_user($uid) {
+  $user = array();
+  $fields = _profile_csv_users_selected_fields();
+  //Verify that the columns haven't been deleted since the last save or the query will fail
+  $schema = drupal_get_schema('users');
+  foreach ($fields as $field_name => $value) {
+    if (!$schema['fields'][$field_name]) {
+      unset($fields[$field_name]);
+    }
+  }
+  $cols = implode(', ', $fields);
+  $result = db_query("SELECT $cols FROM {users} u WHERE u.uid = %d", $uid);
+  while ($row = db_fetch_object($result)) {
+    foreach ($fields as $col) {
+      $user[$col] = ($col == 'data') ? unserialize($row->$col) : $row->$col;
+    }
+  };
+  return $user;
+}
+
+function _profile_csv_get_profile($uid=0, $user_data=NULL) {
+  $profile_fields = _profile_csv_get_profile_fields();
+  $profile_result = array();
+  foreach ($profile_fields  as $profile_field) {
+    if ($profile_field ['visibility'] == 4) {
+      // Try to get it from the $user_data
+      $value = $user_data[$profile_field['name']];
+    }
+    else {
+      $value = db_result(db_query("SELECT pv.value
+        FROM {profile_fields} pf, {profile_values} pv
+        WHERE pv.fid = pf.fid
+        AND pf.name = '%s'
+        AND pv.uid = %d", $profile_field['name'], $uid));
+    }
+
+    if ($profile_field['type'] == 'date') {
+      if ($value !== 0) {
+        $value = unserialize($value);
+        $value = $value['year'] .'-'. $value['month'] .'-'. $value['day'];
+      }
+    }
+    $profile_result[] = $value;
+  }
+  return $profile_result;
+}
+
+function _profile_csv_header() {
+  $row = array();
+  $fields = _profile_csv_users_selected_fields();
+  foreach ($fields as $field_name => $value) {
+    $row[] = '"'. _profile_csv_users_map_column_name($field_name) .'"';
+  }
+  foreach (_profile_csv_get_profile_fields() as $field) {
+    $row[] = '"'. $field['title'] .'"';
+  }
+
+  return implode(",", $row) ."\n";
+}
+
+function _profile_csv_users_selected_fields() {
+  static $data = NULL;
+  if (!$data) {
+    $fields = variable_get(PROFILE_CSV_PARAM .'fields', array());
+    foreach ($fields as $field_name => $value) {
+      if ($value === 0) {
+        unset($fields[$field_name]);
+      }
+    }
+    $data = $fields;
+  }
+  return $data;
+}
+
+function _profile_csv_users_map_column_name($field_name) {
+  //map with some translation already in Drupal
+  $names = array(
+    'uid'           => t('User ID'),
+    'name'          => t('Username'),
+    'mail'          => t('E-mail address'),
+    'pass'          => t('Password'),
+    'status'        => t('Status'),
+    'signature'     => t('Signature'),
+    'created'       => t('Member for'),
+    'access'        => t('Last access'),
+    'language'      => t('Language'),
+    'timezone_name' => t('Timezone'),
+    'data'          => t('Data'),
+  );
+  if (isset($names[$field_name])) {
+    return $names[$field_name];
+  }
+  return $field_name;
+}
